@@ -154,12 +154,106 @@ VLAN (Virtual Local Area Network)
         6: bond0: <NO-CARRIER,BROADCAST,MULTICAST,MASTER,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default qlen 1000
             link/ether 12:75:c6:af:30:30 brd ff:ff:ff:ff:ff:ff`
 ## 5. Сколько IP адресов в сети с маской /29 ? Сколько /29 подсетей можно получить из сети с маской /24. Приведите несколько примеров /29 подсетей внутри сети 10.10.10.0/24.
-1. 8 адресов
-2. 
+1. 8 всего, 2 зарезервировано, 6 доступно
+        
+        `vagrant@vagrant:~$ ipcalc -b 10.10.10.0/29
+        Address:   10.10.10.0
+        Netmask:   255.255.255.248 = 29
+        Wildcard:  0.0.0.7
+        =>
+        Network:   10.10.10.0/29
+        HostMin:   10.10.10.1
+        HostMax:   10.10.10.6
+        Broadcast: 10.10.10.7
+        Hosts/Net: 6                     Class A, Private Internet`
+        
+2. 254
+        
+        `vagrant@vagrant:~$ ipcalc -b 10.10.10.0/24
+        Address:   10.10.10.0
+        Netmask:   255.255.255.0 = 24
+        Wildcard:  0.0.0.255
+        =>
+        Network:   10.10.10.0/24
+        HostMin:   10.10.10.1
+        HostMax:   10.10.10.254
+        Broadcast: 10.10.10.255
+        Hosts/Net: 254                   Class A, Private Internet`
+        
+3.      10.10.10.1 255.255.255.248
+        10.10.10.2 255.255.255.248
 ## 6. Задача: вас попросили организовать стык между 2-мя организациями. Диапазоны 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 уже заняты. Из какой подсети допустимо взять частные IP адреса? Маску выберите из расчета максимум 40-50 хостов внутри подсети.
+Используем диапазон `100.64.0.0 — 100.127.255.255`
 
+Вариант 1
+
+        `vagrant@vagrant:~$ ipcalc -b --split 40 50 100.64.0.0/26
+        Address:   100.64.0.0
+        Netmask:   255.255.255.192 = 26
+        Wildcard:  0.0.0.63
+        =>
+        Network:   100.64.0.0/26
+        HostMin:   100.64.0.1
+        HostMax:   100.64.0.62
+        Broadcast: 100.64.0.63
+        Hosts/Net: 62                    Class A
+
+        1. Requested size: 40 hosts
+        Netmask:   255.255.255.192 = 26
+        Network:   100.64.0.0/26
+        HostMin:   100.64.0.1
+        HostMax:   100.64.0.62
+        Broadcast: 100.64.0.63
+        Hosts/Net: 62                    Class A
+
+        2. Requested size: 50 hosts
+        Netmask:   255.255.255.192 = 26
+        Network:   100.64.0.64/26
+        HostMin:   100.64.0.65
+        HostMax:   100.64.0.126
+        Broadcast: 100.64.0.127
+        Hosts/Net: 62                    Class A
+
+        Network is too small
+        Needed size:  128 addresses.
+        Used network: 100.64.0.0/25
+        Unused:`
+        
+Вариант 2
+
+        `vagrant@vagrant:~$ ipcalc -b --split 40 50 100.64.0.0/25
+        Address:   100.64.0.0
+        Netmask:   255.255.255.128 = 25
+        Wildcard:  0.0.0.127
+        =>
+        Network:   100.64.0.0/25
+        HostMin:   100.64.0.1
+        HostMax:   100.64.0.126
+        Broadcast: 100.64.0.127
+        Hosts/Net: 126                   Class A
+
+        1. Requested size: 40 hosts
+        Netmask:   255.255.255.192 = 26
+        Network:   100.64.0.0/26
+        HostMin:   100.64.0.1
+        HostMax:   100.64.0.62
+        Broadcast: 100.64.0.63
+        Hosts/Net: 62                    Class A
+
+        2. Requested size: 50 hosts
+        Netmask:   255.255.255.192 = 26
+        Network:   100.64.0.64/26
+        HostMin:   100.64.0.65
+        HostMax:   100.64.0.126
+        Broadcast: 100.64.0.127
+        Hosts/Net: 62                    Class A
+
+        Needed size:  128 addresses.
+        Used network: 100.64.0.0/25
+        Unused:`
 ## 7. Как проверить ARP таблицу в Linux, Windows? Как очистить ARP кеш полностью? Как из ARP таблицы удалить только один нужный IP?
 Windows:
+        
         `PS C:\Users\fulla> arp -a
 
         Интерфейс: 192.168.56.1 --- 0x5
@@ -179,11 +273,18 @@ Windows:
 Для очистки кеша `netsh interface ip delete arpcache`
         
 Linux:
+
         `vagrant@vagrant:~$ arp -v
-                Address                  HWtype  HWaddress           Flags Mask            Iface
-                _gateway                 ether   52:54:00:12:35:02   C                     eth0
-                10.0.2.3                 ether   52:54:00:12:35:03   C                     eth0
-                Entries: 2      Skipped: 0      Found: 2`
+        Address                  HWtype  HWaddress           Flags Mask            Iface
+        _gateway                 ether   52:54:00:12:35:02   C                     eth0
+        10.0.2.3                 ether   52:54:00:12:35:03   C                     eth0
+        Entries: 2      Skipped: 0      Found: 2`
+
+или
+
+        `vagrant@vagrant:~$ ip neighbour
+        10.0.2.2 dev eth0 lladdr 52:54:00:12:35:02 REACHABLE
+        10.0.2.3 dev eth0 lladdr 52:54:00:12:35:03 STALE`
         
 Для удаления используется опция `-d` - `arp -d 10.0.2.3`.
 
