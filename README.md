@@ -1,10 +1,103 @@
 # Домашнее задание к занятию "3.7. Компьютерные сети, лекция 2"
 
 ## 1. Проверьте список доступных сетевых интерфейсов на вашем компьютере. Какие команды есть для этого в Linux и в Windows?
+Linux:
 
+`vagrant@vagrant:~$ ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.2.15  netmask 255.255.255.0  broadcast 10.0.2.255
+        inet6 fe80::a00:27ff:fe73:60cf  prefixlen 64  scopeid 0x20<link>
+        ether 08:00:27:73:60:cf  txqueuelen 1000  (Ethernet)
+        RX packets 95585  bytes 16772279 (16.7 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 110084  bytes 9622242 (9.6 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 987  bytes 91273 (91.2 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 987  bytes 91273 (91.2 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0`
+
+Windows:
+
+ `PS C:\Users\fulla> ipconfig
+ Настройка протокола IP для Windows
+
+ Адаптер Ethernet VirtualBox Host-Only Network:
+    DNS-суффикс подключения . . . . . :
+    Локальный IPv6-адрес канала . . . : fe80::934:4ef6:ee0e:295f%5
+    IPv4-адрес. . . . . . . . . . . . : 192.168.56.1
+    Маска подсети . . . . . . . . . . : 255.255.255.0
+    Основной шлюз. . . . . . . . . :
+
+ Адаптер беспроводной локальной сети Подключение по локальной сети* 1:
+    Состояние среды. . . . . . . . : Среда передачи недоступна.
+    DNS-суффикс подключения . . . . . :
+
+ Адаптер беспроводной локальной сети Подключение по локальной сети* 10:
+    Состояние среды. . . . . . . . : Среда передачи недоступна.
+    DNS-суффикс подключения . . . . . :
+
+ Адаптер беспроводной локальной сети Беспроводная сеть:
+    DNS-суффикс подключения . . . . . :
+    Локальный IPv6-адрес канала . . . : fe80::c878:fd68:417d:1b60%7
+    IPv4-адрес. . . . . . . . . . . . : 192.168.1.105
+    Маска подсети . . . . . . . . . . : 255.255.255.0
+    Основной шлюз. . . . . . . . . : 192.168.1.1
+
+ Адаптер Ethernet Сетевое подключение Bluetooth:
+    Состояние среды. . . . . . . . : Среда передачи недоступна.
+    DNS-суффикс подключения . . . . . :`
 ## 2. Какой протокол используется для распознавания соседа по сетевому интерфейсу? Какой пакет и команды есть в Linux для этого?
+LLDP – протокол для обмена информацией между соседними устройствами.
 
+Пакет `lldpd`
+
+`vagrant@vagrant:~$ lldpctl
+-------------------------------------------------------------------------------
+LLDP neighbors:
+-------------------------------------------------------------------------------`
 ## 3. Какая технология используется для разделения L2 коммутатора на несколько виртуальных сетей? Какой пакет и команды есть в Linux для этого? Приведите пример конфига.
+VLAN (Virtual Local Area Network)
+
+Пакет `vlan`. Команды `vconfig ` и `ip`.
+
+`vagrant@vagrant:~$ vim /etc/network/interfaces
+    # interfaces(5) file used by ifup(8) and ifdown(8)
+    # Include files from /etc/network/interfaces.d:
+    source-directory /etc/network/interfaces.d
+    ##vlan с ID-100 для интерфейса eth0 with ID - 100
+    auto eth0.100
+    iface eth0.100 inet static
+    address 192.168.1.200
+    netmask 255.255.255.0
+    vlan-raw-device eth0`
+
+`vagrant@vagrant:~$ ifconfig
+    eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+            inet 10.0.2.15  netmask 255.255.255.0  broadcast 10.0.2.255
+            inet6 fe80::a00:27ff:fe73:60cf  prefixlen 64  scopeid 0x20<link>
+            ether 08:00:27:73:60:cf  txqueuelen 1000  (Ethernet)
+            RX packets 598  bytes 60113 (60.1 KB)
+            RX errors 0  dropped 0  overruns 0  frame 0
+            TX packets 412  bytes 63177 (63.1 KB)
+            TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+    eth0.100: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+            inet 192.168.1.200  netmask 255.255.255.0  broadcast 192.168.1.255
+            inet6 fe80::a00:27ff:fe73:60cf  prefixlen 64  scopeid 0x20<link>
+            ether 08:00:27:73:60:cf  txqueuelen 1000  (Ethernet)
+            RX packets 0  bytes 0 (0.0 B)
+            RX errors 0  dropped 0  overruns 0  frame 0
+            TX packets 12  bytes 936 (936.0 B)
+            TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+    lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+    ...`
 
 ## 4. Какие типы агрегации интерфейсов есть в Linux? Какие опции есть для балансировки нагрузки? Приведите пример конфига.
 
