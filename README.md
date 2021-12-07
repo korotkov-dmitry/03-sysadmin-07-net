@@ -167,7 +167,7 @@ VLAN (Virtual Local Area Network)
         Broadcast: 10.10.10.7
         Hosts/Net: 6                     Class A, Private Internet`
         
-2. 254
+2. 256
         
         `vagrant@vagrant:~$ ipcalc -b 10.10.10.0/24
         Address:   10.10.10.0
